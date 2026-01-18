@@ -8,6 +8,8 @@ import FileExplorer from '@/components/FileExplorer';
 import CreateFolderModal from '@/components/CreateFolderModal';
 import UploadModal from '@/components/UploadModal';
 import Breadcrumb from '@/components/Breadcrumb';
+import QuickAccess from '@/components/QuickAccess';
+import ViewToggle, { ViewMode } from '@/components/ViewToggle';
 import api from '@/lib/api';
 
 export default function DashboardPage() {
@@ -22,6 +24,7 @@ export default function DashboardPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [viewMode, setViewMode] = useState<ViewMode>('list');
 
     useEffect(() => {
         if (!loading && !user) {
@@ -167,6 +170,7 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     <div className="flex items-center gap-4 ml-4">
+                        {activeTab === 'drive' && <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />}
                         <span className="text-sm text-gray-700 dark:text-gray-300 font-medium hidden sm:block">
                             {user.name}
                         </span>
@@ -206,28 +210,11 @@ export default function DashboardPage() {
                 )}
 
                 {activeTab === 'recent' && (
-                    <div className="flex-1 flex items-center justify-center">
-                        <div className="text-center">
-                            <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">Recent files</h3>
-                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Your recently accessed files will appear here</p>
-                        </div>
-                    </div>
+                    <QuickAccess type="recent" />
                 )}
 
                 {activeTab === 'starred' && (
-                    <div className="flex-1 flex items-center justify-center">
-                        <div className="text-center">
-                            <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                            </svg>
-                            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">Starred files</h3>
-                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Star your important files and they'll appear here</p>
-                            <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">Click the star icon on any file to mark it as favorite</p>
-                        </div>
-                    </div>
+                    <QuickAccess type="starred" />
                 )}
 
                 {activeTab === 'trash' && (

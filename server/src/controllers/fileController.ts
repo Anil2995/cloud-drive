@@ -159,4 +159,125 @@ export const deleteFile = async (req: AuthenticatedRequest, res: Response): Prom
         console.error(err.message);
         res.status(500).send('Server Error');
     }
-}
+};
+
+// Get Storage Usage
+export const getStorageUsage = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        const owner_id = req.user?.id;
+
+        if (!owner_id) {
+            res.status(401).json({ msg: 'Unauthorized' });
+            return;
+        }
+
+        const result = await pool.query(
+            'SELECT COALESCE(SUM(size_bytes), 0) as used_bytes FROM files WHERE owner_id = $1 AND is_deleted = false',
+            [owner_id]
+        );
+
+        const usedBytes = parseInt(result.rows[0].used_bytes);
+        const totalBytes = 15 * 1024 * 1024 * 1024; // 15GB
+
+        res.json({
+            usedBytes,
+            totalBytes,
+            percentage: (usedBytes / totalBytes) * 100
+        });
+
+    } catch (err: any) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+// Get Recent Files
+export const getRecentFiles = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        const owner_id = req.user?.id;
+        const limit = parseInt(req.query.limit as string) || 20;
+
+        if (!owner_id) {
+            res.status(401).json({ msg: 'Unauthorized' });
+            return;
+        }
+
+        const result = await pool.query(
+            `SELECT * FROM files 
+             WHERE owner_id = $1 AND is_deleted = false 
+             ORDER BY updated_at DESC 
+             LIMIT $2`,
+            [owner_id, limit]
+        );
+
+        res.json({ files: result.rows });
+
+    } catch (err: any) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+// Get Starred Files
+export const getStarredFiles = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        const owner_id = req.user?.id;
+
+        if (!owner_id) {
+            res.status(401).json({ msg: 'Unauthorized' });
+            return;
+        }
+
+        const result = await pool.query(
+            `SELECT * FROM files 
+             WHERE owner_id = $1 AND is_deleted = false AND is_starred = true 
+             ORDER BY updated_at DESC`,
+            [owner_id]
+        );
+
+        res.json({ files: result.rows });
+
+    } catch (err: any) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+// Toggle Star on File
+export const toggleStar = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const owner_id = req.user?.id;
+
+        if (!owner_id) {
+            res.status(401).json({ msg: 'Unauthorized' });
+            return;
+        }
+
+        const fileResult = await pool.query(
+            'SELECT is_starred FROM files WHERE id = $1 AND owner_id = $2',
+            [id, owner_id]
+        );
+
+        if (fileResult.rows.length === 0) {
+            res.status(404).json({ msg: 'File not found' });
+            return;
+        }
+
+        const currentStarred = fileResult.rows[0].is_starred || false;
+
+        const updatedFile = await pool.query(
+            'UPDATE files SET is_starred = $1, updated_at = now() WHERE id = $2 AND owner_id = $3 RETURNING *',
+            [!currentStarred, id, owner_id]
+        );
+
+        res.json({
+            file: updatedFile.rows[0],
+            message: currentStarred ? 'Removed from starred' : 'Added to starred'
+        });
+
+    } catch (err: any) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};

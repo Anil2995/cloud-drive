@@ -38,6 +38,7 @@ create table if not exists files (
   version_id uuid, -- set after first version
   checksum text,
   is_deleted boolean default false,
+  is_starred boolean default false,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );

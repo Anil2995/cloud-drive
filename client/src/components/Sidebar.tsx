@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import StorageQuota from './StorageQuota';
 
 interface SidebarProps {
     activeTab?: string;
@@ -128,19 +129,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab = 'drive', onTabChange, onC
             </nav>
 
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="relative pt-1">
-                    <div className="flex mb-2 items-center justify-between">
-                        <div>
-                            <span className="text-xs font-semibold inline-block text-gray-600 dark:text-gray-400">
-                                Storage (20%)
-                            </span>
-                        </div>
-                    </div>
-                    <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200 dark:bg-gray-700">
-                        <div style={{ width: '20%' }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500"></div>
-                    </div>
-                    <p className="text-xs text-gray-500">1 GB of 5 GB used</p>
-                </div>
+                <StorageQuota />
             </div>
         </aside>
     );
