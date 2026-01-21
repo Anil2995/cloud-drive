@@ -7,8 +7,24 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+// Configure CORS to allow both development and production origins
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://cloud-drive-three.vercel.app',
+    process.env.CORS_ORIGIN
+].filter(Boolean);
+
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps, curl, Postman)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 
